@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 记体重小组件背景：鼠尾草绿渐变 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="#FF3FAA76"
+        android:endColor="#FF6BC4A6"
+        android:type="linear" />
+    <corners android:radius="18dp" />
+</shape>

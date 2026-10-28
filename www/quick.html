@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>快速记录</title>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <style>
+    :root {
+      --bg: #fcf6f2; --card: rgba(255, 255, 255, .92); --card-2: #f6eeea;
+      --text: #332c33; --text-2: #5d535f; --muted: #9a8f99;
+      --border: rgba(51, 44, 51, .09); --primary: #e57392; --primary-ink: #b84465;
+      --success: #3faa76; --warning: #d98c3a; --danger: #e05e6a;
+      --ok-bg: rgba(63, 170, 118, .13); --warn-bg: rgba(245, 176, 109, .18); --danger-bg: rgba(224, 94, 106, .13);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    [data-theme="dark"] {
+      --card: rgba(36, 32, 42, .95); --card-2: #302a38;
+      --text: #f2ecf0; --text-2: #c8c0ca; --muted: #8e8696;
+      --border: rgba(242, 236, 240, .10); --primary: #f08aa6; --primary-ink: #f7c2d0;
+      --success: #6fd39b; --warning: #f2bc6e; --danger: #f48290;
+      --ok-bg: rgba(111, 211, 155, .16); --warn-bg: rgba(242, 188, 110, .18); --danger-bg: rgba(244, 130, 144, .16);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; height: 100%; background: transparent; }
+    body {
+      font-family: var(--font); color: var(--text); font-size: 15px; line-height: 1.5;
+      display: flex; align-items: center; justify-content: center; padding: 18px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .qcard {
+      width: 100%; max-width: 420px;
+      background: var(--card);
+      backdrop-filter: blur(22px) saturate(170%); -webkit-backdrop-filter: blur(22px) saturate(170%);
+      border: 1px solid rgba(255, 255, 255, .45);
+      border-radius: 26px; padding: 20px 18px 16px;
+      box-shadow: 0 24px 60px rgba(40, 20, 30, .35), inset 0 1px 0 rgba(255, 255, 255, .5);
+      animation: cardIn .32s cubic-bezier(.22,.61,.36,1);
+    }
+    [data-theme="dark"] .qcard { border-color: rgba(255, 255, 255, .10); box-shadow: 0 24px 60px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .07); }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+    .qhead { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .qhead .qico {
+      width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center;
+      color: #fff; font-size: 17px; flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(120, 70, 90, .22), inset 0 1px 0 rgba(255, 255, 255, .35);
+    }
+    .qhead b { font-size: 17px; letter-spacing: -.01em; }
+    .qhead small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+    #qclose {
+      margin-left: auto; width: 36px; height: 36px; border-radius: 12px; border: none;
+      background: var(--card-2); color: var(--muted); font-size: 15px; cursor: pointer;
+    }
+    #qclose:active { transform: scale(.92); }
+    .qvalue { display: flex; align-items: center; gap: 8px; }
+    .qvalue input {
+      flex: 1; min-width: 0; min-height: 60px; padding: 8px 14px; text-align: center;
+      font-size: 30px; font-weight: 800; letter-spacing: -1px;
+      background: var(--card-2); border: 1.5px solid transparent; border-radius: 16px; outline: none;
+      color: var(--text); font-family: inherit;
+    }
+    .qvalue input:focus { border-color: var(--primary); background: transparent; }
+    .qvalue .unit { font-size: 13px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .qlabel { font-size: 12.5px; font-weight: 700; color: var(--text-2); margin: 14px 0 7px; }
+    .qfield { margin-bottom: 10px; }
+    .qfield input, .qfield select {
+      width: 100%; min-height: 46px; padding: 10px 14px; border-radius: 14px;
+      background: var(--card-2); border: 1.5px solid transparent; outline: none;
+      font-size: 15px; color: var(--text); font-family: inherit;
+      appearance: none; -webkit-appearance: none;
+    }
+    .qfield input:focus, .qfield select:focus { border-color: var(--primary); }
+    .qstatus {
+      display: none; margin-top: 10px; padding: 8px 12px; border-radius: 12px;
+      font-size: 12.5px; font-weight: 700; align-items: center; gap: 6px;
+    }
+    .qstatus.show { display: inline-flex; }
+    .qstatus.badge-green { background: var(--ok-bg); color: var(--success); }
+    .qstatus.badge-yellow { background: var(--warn-bg); color: var(--warning); }
+    .qstatus.badge-red { background: var(--danger-bg); color: var(--danger); }
+    .qrow { display: flex; gap: 10px; margin-top: 16px; }
+    .qrow button {
+      flex: 1; min-height: 46px; border-radius: 14px; border: none; cursor: pointer;
+      font-size: 15px; font-weight: 700; font-family: inherit; color: var(--text-2);
+      background: var(--card-2); transition: transform .14s, filter .18s;
+    }
+    .qrow button:active { transform: scale(.96); }
+    .qrow button.primary { background: linear-gradient(135deg, #ec7a96, #f3a3b6); color: #fff; box-shadow: 0 8px 20px rgba(236, 122, 150, .35); }
+    .qdone {
+      position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 6px; border-radius: 26px;
+      background: var(--card); font-weight: 800; font-size: 18px; color: var(--success);
+    }
+    .qdone.show { display: flex; animation: cardIn .25s ease; }
+    .qdone small { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .qhint { margin-top: 10px; font-size: 11px; color: var(--muted); text-align: center; }
+    .qcard { position: relative; }
+  </style>
+</head>
+<body>
+  <div class="qcard">
+    <div class="qhead">
+      <span class="qico" id="qico">✓</span>
+      <div><b id="qtitle">快速记录</b><small id="qsub">暖语 · 桌面快提</small></div>
+      <button id="qclose" aria-label="关闭">✕</button>
+    </div>
+    <div id="qbody"></div>
+    <div class="qrow">
+      <button id="qopenapp" style="display:none">打开应用</button>
+      <button id="qsave" class="primary">保存</button>
+    </div>
+    <div class="qhint" id="qhint">将记录为当前时间，保存后自动关闭</div>
+    <div class="qdone" id="qdone"><span>✓ 已记录</span><small id="qdone-sub">数据已同步到应用与小组件</small></div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+    Store.init();
+
+    /* 主题跟随应用设置 */
+    var settings = Store.get('settings');
+    var theme = settings.theme || 'system';
+    if (theme === 'system') {
+      theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+
+    var params = new URLSearchParams(location.search);
+    var kind = params.get('kind') || 'weight';
+    var hasNative = !!(window.QuickNative && window.QuickNative.close);
+
+    var KINDS = {
+      weight: { title: '记体重', sub: '桌面快提 · 体重', color: 'linear-gradient(135deg,#3faa76,#6bc4a6)', ico: '⚖' },
+      sugar:  { title: '记血糖', sub: '桌面快提 · 血糖', color: 'linear-gradient(135deg,#d98c3a,#f4957a)', ico: '💧' },
+      diet:   { title: '记饮食', sub: '桌面快提 · 饮食', color: 'linear-gradient(135deg,#7ec4a0,#a8dcc0)', ico: '🥗' }
+    };
+    var k = KINDS[kind] || KINDS.weight;
+    document.getElementById('qtitle').textContent = k.title;
+    document.getElementById('qsub').textContent = k.sub;
+    document.getElementById('qico').textContent = k.ico;
+    document.getElementById('qico').style.background = k.color;
+    if (!hasNative) {
+      document.getElementById('qhint').textContent = '（浏览器预览模式：数据仍会写入本地，与 App 共享）';
+    }
+
+    var body = document.getElementById('qbody');
+    var inputScene = 'fasting';
+
+    function todayStr() { return Utils.todayStr(); }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    }); }
+
+    /* 按时间推荐血糖场景 */
+    function recommendScene() {
+      var mt = settings.mealTimes || Store.DEFAULT_MEAL_TIMES;
+      var nowMin = Utils.timeToMin(Utils.timeStr());
+      if (nowMin < Utils.timeToMin(mt.breakfast) - 15) return 'fasting';
+      var lastMin = -1e9, nextMin = 1e9;
+      ['breakfast', 'lunch', 'dinner', 'snack'].forEach(function (key) {
+        var m = Utils.timeToMin(mt[key]);
+        if (m <= nowMin && m > lastMin) lastMin = m;
+        if (m > nowMin && m < nextMin) nextMin = m;
+      });
+      var since = nowMin - lastMin;
+      if (since < 90) return 'afterMeal1h';
+      if (since < 180) return 'afterMeal2h';
+      if (since < 240) return 'afterMeal3h';
+      if (nextMin - nowMin <= 60) return 'beforeMeal';
+      if (nowMin >= Utils.timeToMin('21:30')) return 'bedtime';
+      return 'random';
+    }
+
+    var scenes = [['fasting', '空腹'], ['beforeMeal', '餐前'], ['afterMeal1h', '餐后1h'], ['afterMeal2h', '餐后2h'], ['afterMeal3h', '餐后3h'], ['bedtime', '睡前'], ['random', '随机']];
+    var meals = [['breakfast', '早餐'], ['lunch', '午餐'], ['dinner', '晚餐'], ['snack', '加餐']];
+
+    var html = '';
+    if (kind === 'weight') {
+      var unit = settings.unit || 'kg';
+      html = '<div class="qvalue"><input id="f-value" type="number" inputmode="decimal" step="0.1" placeholder="0.0" autofocus><span class="unit">' + unit + '</span></div>' +
+        '<div class="qhint">上次：' + lastWeightText() + '</div>';
+    } else if (kind === 'sugar') {
+      var suUnit = settings.sugarUnit === 'mgdl' ? 'mg/dL' : 'mmol/L';
+      inputScene = recommendScene();
+      var chips = scenes.map(function (s) {
+        return '<option value="' + s[0] + '"' + (s[0] === inputScene ? ' selected' : '') + '>' + s[1] + '</option>';
+      }).join('');
+      html = '<div class="qvalue"><input id="f-value" type="number" inputmode="decimal" step="0.1" placeholder="0.0" autofocus><span class="unit">' + suUnit + '</span></div>' +
+        '<div class="qlabel">测量场景（已按时间推荐）</div>' +
+        '<div class="qfield"><select id="f-scene">' + chips + '</select></div>' +
+        '<div class="qstatus" id="f-status"></div>';
+    } else if (kind === 'diet') {
+      var mealOpts = meals.map(function (m) {
+        return '<option value="' + m[0] + '"' + (m[0] === recommendMeal() ? ' selected' : '') + '>' + m[1] + '</option>';
+      }).join('');
+      html = '<div class="qfield"><label class="qlabel">餐次</label><select id="f-meal">' + mealOpts + '</select></div>' +
+        '<div class="qfield"><label class="qlabel">食物名称</label><input id="f-name" placeholder="如：全麦面包"></div>' +
+        '<div class="qvalue"><input id="f-amount" type="number" inputmode="numeric" value="100"><span class="unit">克(g)</span></div>' +
+        '<div class="qlabel">每100克热量（千卡）</div>' +
+        '<div class="qvalue"><input id="f-kcal" type="number" inputmode="decimal" placeholder="如：116"><span class="unit">千卡/100g</span></div>';
+    }
+    body.innerHTML = html;
+
+    function lastWeightText() {
+      var w = Store.get('weights', []).slice().sort(Utils.byDateDesc)[0];
+      if (!w) return '暂无记录';
+      var unit = settings.unit || 'kg';
+      return (unit === 'kg' ? Utils.round(w.value, 1) : Utils.kgToLb(w.value)) + ' ' + unit;
+    }
+    function recommendMeal() {
+      var mt = settings.mealTimes || Store.DEFAULT_MEAL_TIMES;
+      var nowMin = Utils.timeToMin(Utils.timeStr());
+      var best = 'breakfast', bestGap = 1e9;
+      meals.forEach(function (m) {
+        var gap = Math.abs(nowMin - Utils.timeToMin(mt[m[0]]));
+        if (gap < bestGap) { bestGap = gap; best = m[0]; }
+      });
+      return best;
+    }
+
+    var valueEl = document.getElementById('f-value');
+    if (valueEl) valueEl.focus();
+    var sceneSel = document.getElementById('f-scene');
+    if (sceneSel) {
+      sceneSel.addEventListener('change', previewSugar);
+      if (valueEl) valueEl.addEventListener('input', previewSugar);
+      previewSugar();
+    }
+
+    function sugarRef(scene) { return Data.resolveSugar(scene); }
+
+    function previewSugar() {
+      var box = document.getElementById('f-status');
+      if (!box || !valueEl || !valueEl.value) { box.className = 'qstatus'; return; }
+      var v = parseFloat(valueEl.value);
+      var mmol = settings.sugarUnit === 'mgdl' ? Utils.mgdlToMmol(v) : v;
+      var r = sugarRef(sceneSel.value);
+      var label = mmol > r.high ? ['偏高', 'badge-red'] : mmol < r.low ? ['偏低', 'badge-yellow'] : ['正常', 'badge-green'];
+      box.textContent = label[0] + ' · 目标 ' + (r.low) + '~' + (r.high) + ' mmol/L';
+      box.className = 'qstatus show ' + label[1];
+    }
+
+    /* ---------- 保存 ---------- */
+    document.getElementById('qsave').addEventListener('click', function () {
+      var now = todayStr(), time = Utils.timeStr();
+      if (kind === 'weight') {
+        var v = parseFloat(valueEl.value);
+        if (!v || v <= 0 || v > 500) { shake(); return; }
+        var unit = settings.unit || 'kg';
+        var kg = unit === 'lb' ? Utils.round(Utils.lbToKg(v), 1) : Utils.round(v, 1);
+        var list = Store.get('weights', []);
+        list.push({ id: Utils.uid(), date: now, time: time, value: kg });
+        Store.set('weights', list);
+      } else if (kind === 'sugar') {
+        var sv = parseFloat(valueEl.value);
+        if (!sv || sv <= 0 || sv > 3000) { shake(); return; }
+        var val = settings.sugarUnit === 'mgdl' ? Utils.round(Utils.mgdlToMmol(sv), 1) : Utils.round(sv, 1);
+        var slist = Store.get('sugars', []);
+        slist.push({ id: Utils.uid(), date: now, time: time, value: val, scene: sceneSel.value });
+        Store.set('sugars', slist);
+      } else if (kind === 'diet') {
+        var name = document.getElementById('f-name').value.trim();
+        var amount = parseFloat(document.getElementById('f-amount').value);
+        var kcal = parseFloat(document.getElementById('f-kcal').value);
+        if (!name) { shake('请填写食物名称'); return; }
+        if (!amount || amount <= 0) { shake('请填写份量'); return; }
+        if (isNaN(kcal) || kcal < 0) { shake('请填写热量'); return; }
+        var dlist = Store.get('diets', []);
+        dlist.push({ id: Utils.uid(), date: now, time: time, meal: document.getElementById('f-meal').value, name: name, amount: Math.round(amount), kcal: Utils.round(kcal, 1), protein: 0, carb: 0, fat: 0 });
+        Store.set('diets', dlist);
+      }
+
+      /* 刷新桌面小组件数据镜像（原生端写入） */
+      if (hasNative && window.QuickNative.updateWidget) {
+        try { window.QuickNative.updateWidget(JSON.stringify(computeMirror())); } catch (e) {}
+      }
+      var done = document.getElementById('qdone');
+      done.classList.add('show');
+      setTimeout(function () {
+        if (hasNative) window.QuickNative.close();
+        else {
+          done.classList.remove('show');
+          var inputs = document.querySelectorAll('#qbody input');
+          inputs.forEach(function (i) { i.value = ''; });
+        }
+      }, 800);
+    });
+
+    function shake(msg) {
+      var card = document.querySelector('.qcard');
+      card.style.animation = 'none';
+      void card.offsetWidth;
+      card.style.animation = 'qshake .3s ease';
+      if (msg) document.getElementById('qhint').textContent = msg;
+    }
+
+    document.getElementById('qclose').addEventListener('click', function () {
+      if (hasNative) window.QuickNative.close(); else window.close();
+    });
+    var openAppBtn = document.getElementById('qopenapp');
+    if (hasNative) {
+      openAppBtn.style.display = '';
+      openAppBtn.addEventListener('click', function () { window.QuickNative.openApp(); });
+    }
+
+    /* 小组件镜像数据（与 App 内 syncWidgets 相同口径） */
+    function computeMirror() {
+      var s = Store.get('settings');
+      var today = todayStr();
+      var w = Store.get('weights', []).slice().sort(Utils.byDateDesc)[0];
+      var su = Store.get('sugars', []).slice().sort(Utils.byDateDesc)[0];
+      var unit = s.unit || 'kg';
+      var weightText = w ? ((unit === 'kg' ? Utils.round(w.value, 1) : Utils.kgToLb(w.value)) + ' ' + unit) : '';
+      var suUnit = s.sugarUnit === 'mgdl' ? 'mg/dL' : 'mmol/L';
+      var sugarText = su ? ((suUnit === 'mmol/L' ? Utils.round(su.value, 1) : Utils.mmolToMgdl(su.value)) + ' ' + suUnit) : '';
+      var sugarStatus = '';
+      if (su) {
+        var r = Data.resolveSugar(su.scene, su.customHours);
+        sugarStatus = su.value > r.high ? '偏高' : su.value < r.low ? '偏低' : '正常';
+      }
+      var diets = Store.get('diets', []);
+      var kcal = 0;
+      diets.forEach(function (d) { if (d.date === today) kcal += (d.kcal || 0) * (d.amount || 0) / 100; });
+      var mealCount = ['breakfast', 'lunch', 'dinner', 'snack'].filter(function (m) {
+        return diets.some(function (d) { return d.date === today && d.meal === m; });
+      }).length;
+      return {
+        weightText: weightText, weightDate: w ? w.date : '',
+        sugarText: sugarText, sugarStatus: sugarStatus, sugarDate: su ? su.date : '',
+        dietKcal: String(Math.round(kcal)), dietMeals: String(mealCount), dietDate: today
+      };
+    }
+  })();
+  </script>
+  <style>
+    @keyframes qshake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+  </style>
+</body>
+</html>

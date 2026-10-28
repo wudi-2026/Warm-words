@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">暖语健康管理</string>
+    <string name="title_activity_main">暖语健康管理</string>
+    <string name="package_name">com.example.pregnancy</string>
+    <string name="custom_url_scheme">com.example.pregnancy</string>
+    <!-- 桌面小组件 -->
+    <string name="widget_weight_desc">记录体重：显示最新体重，点击快速记录</string>
+    <string name="widget_sugar_desc">记录血糖：显示最近血糖，点击快速记录</string>
+    <string name="widget_diet_desc">记录饮食：显示今日热量，点击快速记录</string>
+</resources>

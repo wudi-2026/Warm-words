@@ -1,0 +1,33 @@
+{
+  "name": "nuanyu-health",
+  "version": "1.0.0",
+  "description": "暖语 · 健康管理 — 体重血糖记录、饮食红绿灯、用药/用餐提醒的开源健康管理 App（PWA + Android）",
+  "scripts": {
+    "test": "node test/logic.test.js",
+    "serve": "npx serve www",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "android:debug": "npx cap sync android && cd android && gradlew.bat assembleDebug"
+  },
+  "keywords": [
+    "health",
+    "blood-sugar",
+    "weight-management",
+    "gdm",
+    "pregnancy",
+    "pwa",
+    "capacitor",
+    "offline-first",
+    "chinese"
+  ],
+  "author": "Nuanyu Health Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^7.6.8",
+    "@capacitor/cli": "^7.6.8",
+    "@capacitor/core": "^7.6.8",
+    "@capacitor/filesystem": "^7.1.8",
+    "@capacitor/local-notifications": "^7.0.7",
+    "@capacitor/share": "^7.0.4"
+  }
+}

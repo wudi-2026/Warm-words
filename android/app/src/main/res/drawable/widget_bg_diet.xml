@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 记饮食小组件背景：暖沙绿渐变（饮食模块配色） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="#FF7EC4A0"
+        android:endColor="#FFA8DCC0"
+        android:type="linear" />
+    <corners android:radius="18dp" />
+</shape>
